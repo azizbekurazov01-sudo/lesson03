@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
+import os
 import sys
 import asyncio
 import logging
+from aiohttp import web
 
 # Windows konsolida UTF-8 emojilarni bexato chiqarish
 if sys.platform == "win32":
@@ -301,8 +303,32 @@ async def handle_disabled(callback: CallbackQuery):
     await callback.answer("Javob berildi. Keyingi savol ochilmoqda...", show_alert=False)
 
 
+async def start_web_server():
+    """Render port tekshiruvi (port binding) uchun kichik veb-server."""
+    async def handle_ping(request):
+        return web.Response(text="🚗 Prava Test Boti faol!")
+
+    app = web.Application()
+    app.router.add_get("/", handle_ping)
+    app.router.add_get("/health", handle_ping)
+
+    runner = web.AppRunner(app)
+    await runner.setup()
+    port = int(os.environ.get("PORT", 8080))
+    site = web.TCPSite(runner, "0.0.0.0", port)
+    await site.start()
+    print(f"🌐 Veb-server {port}-portda ishga tushirildi.")
+
+
 async def main():
     print("🚗 Prava Test Boti muvaffaqiyatli ishga tushirildi...")
+    
+    # Render port tekshiruvidan muvaffaqiyatli o'tish uchun veb-server
+    try:
+        await start_web_server()
+    except Exception as e:
+        print(f"Veb-serverni ishga tushirishda ogohlantirish: {e}")
+
     print("Bot xabarlarni kutmoqda...")
     # Eski xabarlarni tozalash
     await bot.delete_webhook(drop_pending_updates=True)

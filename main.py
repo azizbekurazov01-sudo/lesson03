@@ -163,12 +163,6 @@ async def cmd_start(message: Message):
         f"Testni boshlash uchun pastdagi <b>'🚀 Start (Testni boshlash)'</b> tugmasini bosing!"
     )
 
-    start_inline = InlineKeyboardMarkup(
-        inline_keyboard=[[
-            InlineKeyboardButton(text="🚀 Testni boshlash", callback_data="start_test")
-        ]]
-    )
-
     await message.answer(
         text=welcome_text,
         parse_mode="HTML",
@@ -239,6 +233,10 @@ async def handle_answer(callback: CallbackQuery):
         return
 
     q = QUESTIONS[current_idx]
+    # Agar foydalanuvchi eski savol tugmasini bosgan bo'lsa
+    if q["id"] != q_id:
+        await callback.answer("⚠️ Bu eski savol! Iltimos, eng oxirgi savolga javob bering.", show_alert=True)
+        return
     correct_idx = q["correct"]
     correct_option_text = q["options"][correct_idx]
     chosen_option_text = q["options"][chosen_idx]
